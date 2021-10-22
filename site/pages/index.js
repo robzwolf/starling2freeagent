@@ -1,6 +1,58 @@
 import Head from 'next/head'
+import Papa from 'papaparse'
 
 export default function Home() {
+    let transformed = []
+
+    const handleFileInputChange = (e) => {
+        const files = e.target.files
+
+        console.log(e)
+        console.log(e.target.files)
+
+        if (files.length > 0) {
+            const file = files[0]
+            console.log(file, file.name)
+            transformed = []
+            parseCSV(file)
+        }
+    }
+
+    const parseCSV = (csvFile) => {
+        Papa.parse(csvFile, {
+            delimiter: ",",
+            header: true,
+            encoding: "ISO-8859-1",
+            worker: true,
+            complete: parseCallback,
+            step: processLines,
+            skipEmptyLines: true
+        })
+    }
+
+    const processLines = (results, parser) => {
+        console.log(results, results.data)
+
+        const transformedLine = convertDataToFreeAgentFormat(results.data)
+        transformed.push(transformedLine)
+        console.log(transformed)
+    }
+
+    const convertDataToFreeAgentFormat = (data) => {
+        return [
+            data["Date"],
+            data["Amount (GBP)"],
+            `${data["Counter Party"]}//${data["Reference"]}//${data["Type"]}//${data["Spending Category"]}`
+        ]
+    }
+
+    const parseCallback = () => {
+        let csvExport = Papa.unparse(transformed);
+        console.log(csvExport)
+
+        window.open(`data:text/csv;charset=utf-8,${csvExport}`)
+    }
+
     return (
         <div className="container">
             <Head>
@@ -12,6 +64,15 @@ export default function Home() {
                 <h1 className="title">
                     Welcome to Starling2FreeAgent!
                 </h1>
+
+                <div>
+                    <input type="file"
+                           id="csvfile"
+                           name="csvfile"
+                           accept=".csv"
+                           onInput={handleFileInputChange}
+                    />
+                </div>
 
                 <p className="description">
                     Get started by editing <code>pages/index.js</code>
