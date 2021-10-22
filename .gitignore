@@ -109,3 +109,6 @@ fa-*
 # macOS file
 .DS_Store
 
+# JetBrains
+.idea/
+
