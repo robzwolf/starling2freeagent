@@ -5,11 +5,10 @@ import sys
 import os
 
 def convertCSV(filename):
-    with open(filename, "rt") as source, open("fa-" + os.path.basename(filename), "wt") as result:
+    with open(filename, "rt", encoding="ISO-8859-1") as source, open("fa-" + os.path.basename(filename), "wt") as result:
         rdr = csv.reader(source)
         wtr = csv.writer(result, delimiter=',', )
         next(rdr)  # Skip CSV headers
-        next(rdr)  # Skip "Opening balance."
         for row in rdr:
             wtr.writerow([row[0], row[4], row[2]])
 
