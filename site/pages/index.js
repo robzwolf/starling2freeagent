@@ -2,19 +2,19 @@ import Head from 'next/head'
 import Papa from 'papaparse'
 
 export default function Home() {
-    let transformed = []
+    let transformed = [];
 
     const handleFileInputChange = (e) => {
-        const files = e.target.files
+        const files = e.target.files;
 
-        console.log(e)
-        console.log(e.target.files)
+        console.log(e);
+        console.log(e.target.files);
 
         if (files.length > 0) {
-            const file = files[0]
-            console.log(file, file.name)
-            transformed = []
-            parseCSV(file)
+            const file = files[0];
+            console.log(file, file.name);
+            transformed = [];
+            parseCSV(file);
         }
     }
 
@@ -27,31 +27,55 @@ export default function Home() {
             complete: parseCallback,
             step: processLines,
             skipEmptyLines: true
-        })
+        });
     }
 
     const processLines = (results, parser) => {
-        console.log(results, results.data)
+        console.log(results, results.data);
 
-        const transformedLine = convertDataToFreeAgentFormat(results.data)
-        transformed.push(transformedLine)
-        console.log(transformed)
+        const transformedLine = convertDataToFreeAgentFormat(results.data);
+        transformed.push(transformedLine);
+        console.log(transformed);
     }
 
     const convertDataToFreeAgentFormat = (data) => {
+        const formattedCounterParty = format(data["Counter Party"]);
+        const formattedReference = format(data["Reference"]);
+        const formattedType = format(data["Type"]);
+        const formattedSpendingCategory = format(data["Spending Category"]);
+
+        const description = `${formattedCounterParty}//${formattedReference}//${formattedType}//${formattedSpendingCategory}`;
         return [
             data["Date"],
             data["Amount (GBP)"],
-            `${data["Counter Party"]}//${data["Reference"]}//${data["Type"]}//${data["Spending Category"]}`
-        ]
+            description
+        ];
     }
 
     const parseCallback = () => {
-        let csvExport = Papa.unparse(transformed);
-        console.log(csvExport)
+        let csvExport = Papa.unparse(transformed, {
+            delimiter: ",",
+            worker: true,
+            newline: "\n"
+        });
+        console.log(csvExport);
 
-        window.open(`data:text/csv;charset=utf-8,${csvExport}`)
+        window.URL = window.webkitURL || window.URL;
+
+        const contentType = 'text/csv';
+        const csvFile = new Blob([csvExport], {type: contentType});
+        const a = document.createElement('a');
+        a.download = 'statement.csv';
+        a.href = window.URL.createObjectURL(csvFile);
+        a.textContent = 'Download CSV';
+        a.dataset.downloadurl = [contentType, a.download, a.href].join(':');
+        document.body.appendChild(a);
+        a.click();
+
+        // window.open(`data:text/csv;charset=utf-8,${csvExport}`)
     }
+
+    const format = (string) => string.trim().replace(/\s\s+/g, ' ');
 
     return (
         <div className="container">

@@ -109,3 +109,6 @@ fa-*
 # JetBrains
 .idea/
 
+# Statements for testing
+*.csv
+
